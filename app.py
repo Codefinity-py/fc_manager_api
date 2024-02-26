@@ -6,6 +6,11 @@ from flask_migrate import Migrate
 
 from db import db
 
+from resources.team import blp as TeamBlueprint
+from resources.player import blp as PlayerBlueprint
+from resources.club import blp as ClubBlueprint
+from resources.user import blp as UserBlueprint
+
 
 load_dotenv()
 
@@ -24,6 +29,11 @@ def create_app():
     api = Api(app)
     db.init_app(app)
 
+    api.register_blueprint(TeamBlueprint)
+    api.register_blueprint(PlayerBlueprint)
+    api.register_blueprint(ClubBlueprint)
+    api.register_blueprint(UserBlueprint)
+
     with app.app_context():
         db.create_all()
 
@@ -31,3 +41,4 @@ def create_app():
 
 
 app = create_app()
+migrate = Migrate(app, db)
