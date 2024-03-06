@@ -4,6 +4,7 @@ from db import db
 from models import PlayerModel
 from schemas import PlayerSchema, PlayerUpdateSchema
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from flask_jwt_extended import jwt_required
 
 blp = Blueprint("players", __name__, description="Operations on the players")
 
@@ -14,12 +15,14 @@ class Player(MethodView):
     def get(self, player_id):
         return PlayerModel.query.get_or_404(player_id)
 
+    @jwt_required()
     def delete(self, player_id):
         player = PlayerModel.query.get_or_404(player_id)
         db.session.delete(player)
         db.session.commit()
         return {"message": "Player deleted"}
 
+    @jwt_required()
     @blp.arguments(PlayerUpdateSchema)
     @blp.response(200, PlayerSchema)
     def put(self, player_data, player_id):
@@ -46,6 +49,7 @@ class PlayerList(MethodView):
     def get(self):
         return PlayerModel.query.all()
 
+    @jwt_required()
     @blp.arguments(PlayerSchema)
     @blp.response(201, PlayerSchema)
     def post(self, player_data):

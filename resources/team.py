@@ -3,6 +3,7 @@ from flask_smorest import Blueprint, abort
 from models.team import TeamModel
 from schemas import TeamSchema, TeamUpdateSchema
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from flask_jwt_extended import jwt_required, get_jwt
 
 from db import db
 
@@ -16,12 +17,17 @@ class Team(MethodView):
     def get(self, team_id):
         return TeamModel.query.get_or_404(team_id)
 
+    @jwt_required()
     def delete(self, team_id):
+        jwt = get_jwt()
+        if not jwt.get("is_admin"):
+            abort(401, message="Admin privilege required")
         team = TeamModel.query.get_or_404(team_id)
         db.session.delete(team)
         db.session.commit()
         return {"message": "Team deleted"}
 
+    @jwt_required()
     @blp.arguments(TeamUpdateSchema)
     @blp.response(200, TeamSchema)
     def put(self, team_data, team_id):
@@ -46,6 +52,7 @@ class TeamList(MethodView):
     def get(self):
         return TeamModel.query.all()
 
+    @jwt_required()
     @blp.arguments(TeamSchema)
     @blp.response(201, TeamSchema)
     def post(self, team_data):
